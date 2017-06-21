@@ -105,6 +105,8 @@ public class Logic {
             Files.copy(archive.toPath(),
                     Paths.get(launcher.getAbsolutePath().replace(launcher.getName(),
                             launcher.getName().replace(".jar", "_Patch.jar"))));
+            Files.walk(tempDir.toPath()).forEach(file -> file.toFile().delete());
+            Files.delete(tempDir.toPath());
         } catch (Exception e) {
             e.printStackTrace();
         }
