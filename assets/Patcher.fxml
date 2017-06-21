@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="dragForm" prefHeight="233.0" prefWidth="388.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label alignment="CENTER" layoutX="87.0" layoutY="96.0" text="Перетащите лаунчер на форму">
+         <font>
+            <Font size="15.0" />
+         </font></Label>
+      <ImageView fx:id="preloader" fitHeight="100.0" fitWidth="89.0" layoutX="154.0" layoutY="67.0" pickOnBounds="true" preserveRatio="true" visible="false">
+         <image>
+            <Image url="/assets/images/preloader.gif" />
+         </image>
+      </ImageView>
+   </children>
+</AnchorPane>
