@@ -8,6 +8,7 @@ import ru.Nano.utils.LauncherUtils;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.interfaces.RSAKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,8 +53,12 @@ public class Logic {
             CtClass SecurityHelper = deobfuscationMap.get("launcher.helper.SecurityHelper");
             CtMethod isValidCertificate = SecurityHelper.getDeclaredMethod("isValidCertificate");
             CtMethod isValidCertificates = SecurityHelper.getDeclaredMethod("isValidCertificates");
+            CtMethod newRSAKeyFactory = getMethodByReturn("java.security.KeyFactory", SecurityHelper);
+            CtMethod newRSACipher = getMethodByArgs(SecurityHelper, "javax.crypto.Cipher", int.class, RSAKey.class);
             isValidCertificate.setBody("{ return true; }");
             isValidCertificates.setBody("{ return true; }");
+            newRSAKeyFactory.setBody("{try { return java.security.KeyFactory.getInstance(\"RSA\"); } catch(java.security.NoSuchAlgorithmException ex) {} return null;}");
+            newRSACipher.setBody("{try {javax.crypto.Cipher chip = javax.crypto.Cipher.getInstance(\"RSA/ECB/PKCS1Padding\"); chip.init($1, (java.security.Key)$2); return chip;} catch (Exception e) {e.printStackTrace(); return null;}}");
             for (CtMethod m : SecurityHelper.getDeclaredMethods()) {
                 if (m.getName().equals("isValidSign"))
                     m.setBody("{return true;}");
@@ -72,9 +77,13 @@ public class Logic {
             }
             patchedClasses.put(FileNameMatcher, FileNameMatcher.toBytecode());
 
-            // IDK
+            // WannaCry?
             CtClass VerifyHelper = deobfuscationMap.get("launcher.helper.VerifyHelper");
             VerifyHelper.getDeclaredMethod("getMapValue").setBody("{return $1.get($2);}");
+            for (CtMethod method :VerifyHelper.getDeclaredMethods()) {
+                if (method.getName().contains("verify"))
+                    method.setBody("{return $1;}");
+            }
             patchedClasses.put(VerifyHelper, VerifyHelper.toBytecode());
         } catch (Exception e) {
             e.printStackTrace();
@@ -110,6 +119,31 @@ public class Logic {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private CtMethod getMethodByArgs(CtClass klass, String returnType, Class... args) {
+        try {
+            for (CtMethod method : klass.getDeclaredMethods()) {
+                if (method.getReturnType().getName().equals(returnType) && method.getParameterTypes().length == args.length)
+                    return method;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private CtMethod getMethodByReturn(String name, CtClass klass) {
+        try {
+            for (CtMethod method : klass.getDeclaredMethods()) {
+                if (method.getReturnType().getName().equals(name))
+                    return method;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+
     }
 
     private CtClass getClassByMethod(String name) {
